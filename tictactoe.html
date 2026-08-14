@@ -6,25 +6,27 @@
 <title>Three in a Row</title>
 <style>
 :root{
-  --bg:#eef1ef;
-  --surface:#ffffff;
-  --ink:#1a2420;
-  --ink-dim:#5b665f;
-  --line:#c7cec8;
-  --x:#c4551f;
-  --o:#1f6f78;
-  --win:#e8c34a;
+  --bg:#fff0e6;
+  --bg-accent:#ffe4f0;
+  --surface:#fffaf5;
+  --ink:#6b2d1a;
+  --ink-dim:#c46b4a;
+  --line:#ffb088;
+  --x:#ff6b2b;
+  --o:#ff4d8d;
+  --win:#ffd24a;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#121613;
-    --surface:#1b201c;
-    --ink:#eef1ea;
-    --ink-dim:#8b968e;
-    --line:#3a423c;
-    --x:#e07a44;
-    --o:#4fb3bd;
-    --win:#e8c34a;
+    --bg:#3d1f2a;
+    --bg-accent:#4a2818;
+    --surface:#5c3040;
+    --ink:#ffe8d6;
+    --ink-dim:#ffb4a2;
+    --line:#c65d47;
+    --x:#ff8c42;
+    --o:#ff6b9d;
+    --win:#ffe066;
   }
 }
 
@@ -32,7 +34,7 @@
 body{
   margin:0;
   min-height:100vh;
-  background:var(--bg);
+  background:linear-gradient(145deg, var(--bg) 0%, var(--bg-accent) 55%, color-mix(in srgb, var(--win) 35%, var(--bg)) 100%);
   color:var(--ink);
   font-family:ui-sans-serif,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
   display:flex;
