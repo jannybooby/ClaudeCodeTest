@@ -25,3 +25,4 @@ Vanilla JS in a single IIFE, no framework:
 - Keep files self-contained: don't introduce a bundler, package.json, or external script/CDN dependencies unless asked.
 - When editing `tictactoe.html`, mirror any logic or markup changes into `tictactoe-commented.html` (and vice versa) — they must stay identical apart from comments.
 - To verify a change, open the file directly in a browser; there is no automated test runner.
+- Commit and push to GitHub regularly as you work — after each logical change, not just at the end of a session — with clean, descriptive commit messages, so work is never lost.
