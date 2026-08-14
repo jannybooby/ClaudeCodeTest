@@ -6,8 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This repo contains standalone, single-file HTML games. There is no build step, package manager, or test suite — each `.html` file is fully self-contained (inline `<style>` and `<script>`, no external dependencies) and runs by opening it directly in a browser.
 
-- `tictactoe.html` — the game, uncommented.
-- `tictactoe-commented.html` — byte-for-byte identical game logic and markup, with explanatory comments added in the `<script>` block.
+- `tictactoe.html` — the game.
 
 ## Architecture (tictactoe.html)
 
@@ -23,6 +22,5 @@ Vanilla JS in a single IIFE, no framework:
 ## Working in this repo
 
 - Keep files self-contained: don't introduce a bundler, package.json, or external script/CDN dependencies unless asked.
-- When editing `tictactoe.html`, mirror any logic or markup changes into `tictactoe-commented.html` (and vice versa) — they must stay identical apart from comments.
 - To verify a change, open the file directly in a browser; there is no automated test runner.
 - Commit and push to GitHub regularly as you work — after each logical change, not just at the end of a session — with clean, descriptive commit messages, so work is never lost.
