@@ -4,8 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Three in a Row</title>
+<script>
+(function(){
+  var saved = localStorage.getItem('tictactoe-theme');
+  var theme = saved === 'sunrise' || saved === 'sunset'
+    ? saved
+    : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'sunset' : 'sunrise');
+  document.documentElement.dataset.theme = theme;
+})();
+</script>
 <style>
-:root{
+:root,
+[data-theme="sunrise"]{
   --bg:#fff0e6;
   --bg-accent:#ffe4f0;
   --surface:#fffaf5;
@@ -16,18 +26,16 @@
   --o:#ff4d8d;
   --win:#ffd24a;
 }
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#3d1f2a;
-    --bg-accent:#4a2818;
-    --surface:#5c3040;
-    --ink:#ffe8d6;
-    --ink-dim:#ffb4a2;
-    --line:#c65d47;
-    --x:#ff8c42;
-    --o:#ff6b9d;
-    --win:#ffe066;
-  }
+[data-theme="sunset"]{
+  --bg:#3d1f2a;
+  --bg-accent:#4a2818;
+  --surface:#5c3040;
+  --ink:#ffe8d6;
+  --ink-dim:#ffb4a2;
+  --line:#c65d47;
+  --x:#ff8c42;
+  --o:#ff6b9d;
+  --win:#ffe066;
 }
 
 *{box-sizing:border-box;}
@@ -56,6 +64,30 @@ header{
   flex-direction:column;
   gap:.35rem;
 }
+
+.header-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:1rem;
+}
+
+#theme{
+  flex-shrink:0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.75rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:.45rem .85rem;
+  cursor:pointer;
+  white-space:nowrap;
+}
+#theme:hover{ border-color:var(--ink-dim); }
+#theme:focus-visible{ outline:2px solid var(--o); outline-offset:2px; }
 
 h1{
   margin:0;
@@ -173,8 +205,13 @@ h1{
 
 <div class="wrap">
   <header>
-    <h1>Three in a Row</h1>
-    <p class="sub">local two-player &middot; no server, no luck</p>
+    <div class="header-row">
+      <div>
+        <h1>Three in a Row</h1>
+        <p class="sub">local two-player &middot; no server, no luck</p>
+      </div>
+      <button id="theme" type="button" aria-label="Switch to sunset mode">Sunset</button>
+    </div>
   </header>
 
   <div class="status-row">
@@ -199,7 +236,25 @@ h1{
   const boardEl = document.getElementById('board');
   const statusEl = document.getElementById('status');
   const resetBtn = document.getElementById('reset');
+  const themeBtn = document.getElementById('theme');
   const scoreEls = { X: document.getElementById('scoreX'), O: document.getElementById('scoreO'), D: document.getElementById('scoreD') };
+
+  function syncThemeButton(){
+    const sunset = document.documentElement.dataset.theme === 'sunset';
+    themeBtn.textContent = sunset ? 'Sunrise' : 'Sunset';
+    themeBtn.setAttribute('aria-label', 'Switch to ' + (sunset ? 'sunrise' : 'sunset') + ' mode');
+  }
+
+  function setTheme(theme){
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('tictactoe-theme', theme);
+    syncThemeButton();
+  }
+
+  themeBtn.addEventListener('click', () => {
+    setTheme(document.documentElement.dataset.theme === 'sunset' ? 'sunrise' : 'sunset');
+  });
+  syncThemeButton();
 
   // All 8 winning combinations, as indexes into the 9-cell board (0-8, left to right, top to bottom).
   const LINES = [
