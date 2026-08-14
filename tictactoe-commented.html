@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Three in a Row</title>
+<style>
+:root{
+  --bg:#eef1ef;
+  --surface:#ffffff;
+  --ink:#1a2420;
+  --ink-dim:#5b665f;
+  --line:#c7cec8;
+  --x:#c4551f;
+  --o:#1f6f78;
+  --win:#e8c34a;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121613;
+    --surface:#1b201c;
+    --ink:#eef1ea;
+    --ink-dim:#8b968e;
+    --line:#3a423c;
+    --x:#e07a44;
+    --o:#4fb3bd;
+    --win:#e8c34a;
+  }
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:ui-sans-serif,system-ui,"Segoe UI",Helvetica,Arial,sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:2.5rem 1.25rem;
+}
+
+.wrap{
+  width:100%;
+  max-width:26rem;
+  display:flex;
+  flex-direction:column;
+  gap:1.5rem;
+}
+
+header{
+  display:flex;
+  flex-direction:column;
+  gap:.35rem;
+}
+
+h1{
+  margin:0;
+  font-size:1.9rem;
+  font-weight:800;
+  letter-spacing:-0.02em;
+  text-wrap:balance;
+}
+
+.sub{
+  margin:0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.8rem;
+  color:var(--ink-dim);
+  letter-spacing:.03em;
+}
+
+.status-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:.85rem 1rem;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:.6rem;
+}
+
+#status{
+  font-size:1rem;
+  font-weight:600;
+}
+
+.score{
+  display:flex;
+  gap:1rem;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.8rem;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink-dim);
+}
+.score b{ color:var(--ink); }
+
+#board{
+  position:relative;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+  gap:3px;
+  background:var(--line);
+  border:1px solid var(--line);
+  border-radius:.75rem;
+  overflow:hidden;
+  aspect-ratio:1;
+}
+
+.cell{
+  background:var(--surface);
+  border:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:min(14vw,3.4rem);
+  font-weight:700;
+  line-height:1;
+  color:var(--ink);
+  padding:0;
+  transition:background .15s ease;
+}
+.cell:hover:not(:disabled){ background:var(--bg); }
+.cell:focus-visible{ outline:2px solid var(--o); outline-offset:-2px; }
+.cell:disabled{ cursor:default; }
+
+.cell[data-mark="X"]{ color:var(--x); }
+.cell[data-mark="O"]{ color:var(--o); }
+
+.cell.win{ background:color-mix(in srgb, var(--win) 22%, var(--surface)); }
+
+.mark-enter{
+  animation:pop .18s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop{
+  from{ transform:scale(.5); opacity:0; }
+  to{ transform:scale(1); opacity:1; }
+}
+@media (prefers-reduced-motion: reduce){
+  .mark-enter{ animation:none; }
+  .cell{ transition:none; }
+}
+
+.controls{
+  display:flex;
+  justify-content:center;
+}
+
+#reset{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.8rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:.5rem;
+  padding:.6rem 1.2rem;
+  cursor:pointer;
+}
+#reset:hover{ border-color:var(--ink-dim); }
+#reset:focus-visible{ outline:2px solid var(--o); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Three in a Row</h1>
+    <p class="sub">local two-player &middot; no server, no luck</p>
+  </header>
+
+  <div class="status-row">
+    <span id="status">X to move</span>
+    <div class="score" aria-hidden="true">
+      <span>X <b id="scoreX">0</b></span>
+      <span>O <b id="scoreO">0</b></span>
+      <span>Draw <b id="scoreD">0</b></span>
+    </div>
+  </div>
+
+  <div id="board" role="grid" aria-label="Tic tac toe board"></div>
+
+  <div class="controls">
+    <button id="reset" type="button">New board</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // DOM references for the elements the game needs to read or update.
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const resetBtn = document.getElementById('reset');
+  const scoreEls = { X: document.getElementById('scoreX'), O: document.getElementById('scoreO'), D: document.getElementById('scoreD') };
+
+  // All 8 winning combinations, as indexes into the 9-cell board (0-8, left to right, top to bottom).
+  const LINES = [
+    [0,1,2],[3,4,5],[6,7,8],   // rows
+    [0,3,6],[1,4,7],[2,5,8],   // columns
+    [0,4,8],[2,4,6]            // diagonals
+  ];
+
+  // Game state. `cells` mirrors the board: null = empty, else 'X' or 'O'.
+  let cells = Array(9).fill(null);
+  let turn = 'X';       // whose turn it currently is
+  let over = false;     // true once a win or draw ends the round
+  const scores = { X:0, O:0, D:0 };  // running tally across rounds
+
+  // Build the 9 cell buttons once and keep references for quick lookup by index.
+  const buttons = [];
+  for(let i=0;i<9;i++){
+    const b = document.createElement('button');
+    b.className = 'cell';
+    b.type = 'button';
+    b.setAttribute('role','gridcell');
+    b.setAttribute('aria-label', 'Cell ' + (i+1) + ', empty');
+    b.addEventListener('click', () => play(i));
+    boardEl.appendChild(b);
+    buttons.push(b);
+  }
+
+  // Returns { mark, line } for the first completed line found, or null if none.
+  function winner(){
+    for(const line of LINES){
+      const [a,b,c] = line;
+      if(cells[a] && cells[a]===cells[b] && cells[a]===cells[c]) return { mark:cells[a], line };
+    }
+    return null;
+  }
+
+  // Handles a click on cell `i`: places the current player's mark, then
+  // checks for a win, a draw, or otherwise hands the turn to the other player.
+  function play(i){
+    if(over || cells[i]) return;  // ignore clicks after the round ends or on a filled cell
+
+    cells[i] = turn;
+    const btn = buttons[i];
+    btn.textContent = turn;
+    btn.dataset.mark = turn;              // drives the X/O color via CSS
+    btn.classList.add('mark-enter');      // pop-in animation
+    btn.disabled = true;
+    btn.setAttribute('aria-label', 'Cell ' + (i+1) + ', ' + turn);
+
+    const win = winner();
+    if(win){
+      over = true;
+      win.line.forEach(idx => buttons[idx].classList.add('win'));  // highlight the winning line
+      scores[win.mark]++;
+      scoreEls[win.mark].textContent = scores[win.mark];
+      statusEl.textContent = win.mark + ' wins';
+      disableAll();
+      return;
+    }
+
+    if(cells.every(Boolean)){  // every cell filled with no winner = draw
+      over = true;
+      scores.D++;
+      scoreEls.D.textContent = scores.D;
+      statusEl.textContent = 'Draw';
+      return;
+    }
+
+    // No win or draw yet: pass the turn to the other player.
+    turn = turn === 'X' ? 'O' : 'X';
+    statusEl.textContent = turn + ' to move';
+  }
+
+  // Locks the board so no further moves can be made after a win.
+  function disableAll(){
+    buttons.forEach(b => b.disabled = true);
+  }
+
+  // Clears the board and state for a fresh round; score totals are kept.
+  function newBoard(){
+    cells = Array(9).fill(null);
+    turn = 'X';
+    over = false;
+    buttons.forEach(b => {
+      b.textContent = '';
+      b.disabled = false;
+      b.classList.remove('win','mark-enter');
+      delete b.dataset.mark;
+      b.setAttribute('aria-label','empty cell');
+    });
+    statusEl.textContent = 'X to move';
+  }
+
+  resetBtn.addEventListener('click', newBoard);
+})();
+</script>
+</body>
+</html>
