@@ -17,7 +17,9 @@ Vanilla JS in a single IIFE, no framework:
 - `winner()` checks the 9-cell array against the 8 fixed `LINES` (rows/cols/diagonals).
 - `play(i)` is the single entry point for a move: mutates `cells`, updates the DOM for that cell, checks `winner()`/draw, and either ends the round or flips `turn`.
 - `newBoard()` resets board state but not `scores`.
-- Theming is CSS custom properties on `:root` with a `prefers-color-scheme: dark` override block — no JS-driven theme switching.
+- Theming uses CSS custom properties on `[data-theme="sunrise"]` and `[data-theme="sunset"]` — a tropical palette with peach/pink/orange (sunrise) and warm plum/coral (sunset).
+- A header `#theme` button toggles between sunrise and sunset; `setTheme()` writes the choice to `localStorage` (`tictactoe-theme`) and updates `document.documentElement.dataset.theme`.
+- An inline script in `<head>` applies the saved theme (or system dark-mode default) before first paint to avoid a flash.
 
 ## Working in this repo
 
